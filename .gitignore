@@ -1,0 +1,7 @@
+/processed_data
+/processed_denoised
+/raw_data
+/raw_data_flat
+/build/predict_model
+/dist
+.env
