@@ -6,8 +6,6 @@ import soundfile as sf
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
-# --- Define Prediction Functions ---
-
 def load_model(model_path):
     return joblib.load(model_path)
 

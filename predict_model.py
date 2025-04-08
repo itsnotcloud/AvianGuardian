@@ -3,21 +3,31 @@ import sys
 import joblib
 import librosa
 import numpy as np
-import soundfile as sf
 
 def load_model(model_path):
     return joblib.load(model_path)
 
 def extract_features(file_path):
-    y, sr = sf.read(file_path)
-    if y.ndim > 1:
-        y = np.mean(y, axis=1)
-    if sr != 16000:
-        y = librosa.resample(y, orig_sr=sr, target_sr=16000)
-        sr = 16000
-    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
-    mfcc_mean = np.mean(mfcc, axis=1)
-    return mfcc_mean.reshape(1, -1)
+
+    try:
+        y, sr = librosa.load(file_path, sr=16000, mono=True)
+        
+        mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+        spectral_centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
+        zero_crossing_rate = librosa.feature.zero_crossing_rate(y)
+        chroma = librosa.feature.chroma_stft(y=y, sr=sr)
+
+        features = np.concatenate([
+            np.mean(mfcc, axis=1),         
+            [np.mean(spectral_centroid)],
+            [np.mean(zero_crossing_rate)],
+            np.mean(chroma, axis=1)
+        ])
+
+        return features.reshape(1, -1)
+
+    except Exception as e:
+        raise RuntimeError(f"Feature extraction failed: {str(e)}")
 
 def predict_audio(model, audio_file):
     features = extract_features(audio_file)

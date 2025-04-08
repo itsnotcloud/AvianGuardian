@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>AvianGuardian - Bird Sound Analysis</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #18bc9c;
+        --accent-color: #f1c40f;
+      }
+      
+      body { 
+        min-height: 100vh;
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
+                    url('https://images.unsplash.com/photo-1470115636492-6d2b56f9146d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .upload-container { 
+        max-width: 800px;
+        margin: 2rem auto;
+        animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .card {
+        border-radius: 18px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+        border: none;
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(8px);
+        transition: transform 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-4px);
+      }
+
+      .upload-icon {
+        font-size: 4.5rem;
+        color: var(--secondary-color);
+        margin-bottom: 1.5rem;
+        animation: float 3s ease-in-out infinite;
+      }
+
+      .submit-btn {
+        background: var(--secondary-color);
+        border: none;
+        padding: 1rem 2.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .submit-btn:hover {
+        background: #1acba7 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(24, 188, 156, 0.35);
+      }
+
+      .submit-btn i {
+        transition: transform 0.3s ease;
+      }
+
+      .submit-btn:hover i {
+        transform: translateX(3px);
+      }
+
+      .file-input-container {
+        border: 2px dashed rgba(44, 62, 80, 0.2);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.9);
+      }
+
+      .file-input-container:hover {
+        border-color: var(--secondary-color);
+        background: rgba(255, 255, 255, 1);
+      }
+
+      .location-permission {
+        border-radius: 12px;
+        margin: 1.5rem 0;
+        background: rgba(24, 188, 156, 0.1);
+        border: 1px solid rgba(24, 188, 156, 0.2);
+      }
+
+      .location-disclaimer {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 1.5rem;
+        text-align: center;
+      }
+
+      .location-disclaimer a {
+        color: var(--secondary-color);
+        text-decoration: none;
+        border-bottom: 1px dashed currentColor;
+      }
+
+      #privacyModal .modal-content {
+        border-radius: 15px;
+        overflow: hidden;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+        100% { transform: translateY(0px); }
+      }
+
+      .form-control {
+        border-radius: 12px;
+        padding: 1.25rem;
+        border: 1px solid rgba(0,0,0,0.1);
+      }
+
+      .form-control:focus {
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 3px rgba(24, 188, 156, 0.2);
+      }
+
+      .content-wrapper {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        padding: 2rem 0;
+      }
+
+      @media (max-width: 768px) {
+        .card {
+          margin: 1rem;
+          border-radius: 14px;
+          padding: 1.5rem;
+        }
+        
+        .upload-icon {
+          font-size: 3.5rem;
+        }
+        
+        h1 {
+          font-size: 1.75rem;
+        }
+        
+        .location-permission {
+          margin: 1rem 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="content-wrapper">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-12 col-md-10 col-lg-8">
+            <div class="card p-4 p-md-5">
+              <div class="text-center">
+                <i class="fas fa-dove upload-icon"></i>
+                <h1 class="mb-4 text-dark fw-bold">AvianGuardian Sound Analysis</h1>
+                <p class="lead text-muted mb-4">
+                  Upload bird audio recording to detect endangered species
+                  <small class="d-block mt-2">Supported formats: WAV, MP3 (Max 5MB)</small>
+                </p>
+              </div>
+
+              <form action="/" method="post" enctype="multipart/form-data">
+                <!-- Hidden location fields -->
+                <input type="hidden" name="latitude" id="latitude">
+                <input type="hidden" name="longitude" id="longitude">
+
+                <div class="mb-4 file-input-container p-3">
+                  <input type="file" name="file" class="form-control" 
+                        accept="audio/wav, audio/mpeg" required>
+                  <small class="text-muted d-block mt-2">Click or drag file here</small>
+                </div>
+
+                <!-- Location permission UI -->
+                <div class="location-permission alert alert-info d-none" id="locationAlert">
+                  <div class="d-flex align-items-center gap-3">
+                    <i class="fas fa-map-marker-alt fa-lg text-primary"></i>
+                    <div class="flex-grow-1">
+                      <p class="mb-2">Help conservation efforts by sharing your location</p>
+                      <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-success" onclick="enableLocation()">
+                          <i class="fas fa-check me-2"></i>Allow Location
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="dismissLocation()">
+                          <i class="fas fa-times me-2"></i>Not Now
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                  <button type="submit" class="btn submit-btn btn-lg text-white">
+                    <i class="fas fa-cloud-upload-alt me-2"></i>Analyze Recording
+                  </button>
+                </div>
+              </form>
+
+              <!-- Privacy disclaimer -->
+              <div class="location-disclaimer mt-4">
+                <small>
+                  <i class="fas fa-lock me-1"></i>
+                  Your privacy is protected. 
+                  <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">
+                    Learn how we use location data
+                  </a>
+                </small>
+              </div>
+            </div>
+
+            <footer class="text-center mt-4">
+              <div class="d-flex justify-content-center gap-3 mb-2">
+                <a href="#" class="text-decoration-none text-light"><i class="fas fa-info-circle me-1"></i>About</a>
+                <a href="#" class="text-decoration-none text-light"><i class="fas fa-envelope me-1"></i>Contact</a>
+                <a href="#" class="text-decoration-none text-light"><i class="fas fa-shield-alt me-1"></i>Privacy</a>
+              </div>
+              <p class="mb-0 text-light opacity-75">© 2024 AvianGuardian. Protecting biodiversity through AI.</p>
+            </footer>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Privacy Modal -->
+    <div class="modal fade" id="privacyModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-light">
+            <h5 class="modal-title"><i class="fas fa-shield-alt me-2"></i>Privacy Assurance</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-success mb-3">
+              <i class="fas fa-check-circle me-2"></i>
+              We prioritize your privacy and data security
+            </div>
+            <ul class="list-unstyled">
+              <li class="mb-3">
+                <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                Location data is stored securely and encrypted
+              </li>
+              <li class="mb-3">
+                <i class="fas fa-ban text-danger me-2"></i>
+                Never shared with third parties or advertisers
+              </li>
+              <li>
+                <i class="fas fa-leaf text-success me-2"></i>
+                Used exclusively for conservation tracking
+              </li>
+            </ul>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Geolocation handling
+      let locationGranted = false;
+
+      function enableLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            position => {
+              document.getElementById('latitude').value = position.coords.latitude.toFixed(6);
+              document.getElementById('longitude').value = position.coords.longitude.toFixed(6);
+              document.getElementById('locationAlert').classList.add('d-none');
+              locationGranted = true;
+            },
+            error => {
+              console.error('Error getting location:', error);
+              document.getElementById('locationAlert').classList.add('d-none');
+            },
+            { timeout: 10000, maximumAge: 600000 }
+          );
+        }
+      }
+
+      function dismissLocation() {
+        document.getElementById('locationAlert').classList.add('d-none');
+        document.getElementById('latitude').value = '';
+        document.getElementById('longitude').value = '';
+      }
+
+      // Show location prompt after 1 second
+      document.addEventListener('DOMContentLoaded', () => {
+        if (navigator.geolocation) {
+          setTimeout(() => {
+            const alertElement = document.getElementById('locationAlert');
+            if (!locationGranted) alertElement.classList.remove('d-none');
+          }, 1000);
+        }
+      });
+
+      // File handling
+      document.querySelector('form').addEventListener('submit', function(e) {
+        const btn = this.querySelector('button');
+        btn.innerHTML = `
+          <span class="spinner-border spinner-border-sm" role="status"></span>
+          Analyzing...`;
+        btn.disabled = true;
+      });
+
+      document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+        const fileName = e.target.files[0]?.name || 'No file selected';
+        this.parentNode.querySelector('small').textContent = fileName;
+      });
+    </script>
+  </body>
+</html>
